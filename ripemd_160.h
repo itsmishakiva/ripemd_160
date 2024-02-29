@@ -47,7 +47,10 @@ private:
     static const uint h2 = 0x98BADCFE;
     static const uint h3 = 0x10325476;
     static const uint h4 = 0xC3D2E1F0;
+
+    static const uint UINT_BYTE_SIZE = sizeof(uint) / sizeof(byte);
     static const uint BLOCK_LENGTH = 64;
+    static const uint BLOCK_WORDS_LENGTH = BLOCK_LENGTH / UINT_BYTE_SIZE;
 
     static vector<byte> expanseInput(const vector<byte>& input);
 
@@ -55,7 +58,7 @@ private:
 
     static uint cycleRolLeft(uint word, uint amount);
 
-    static uint f(uint j, uint x, uint y, uint z);;
+    static uint f(uint j, uint x, uint y, uint z);
 
     static vector<uint> hash(vector<uint> input);
 };

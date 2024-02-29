@@ -13,10 +13,10 @@ string Ripemd160::encode(const string &input) {
     }
     vector<byte> messageBytes(inputBytes);
     messageBytes = expanseInput(inputBytes);
-    vector<uint> message(messageBytes.size() / 4);
+    vector<uint> message(messageBytes.size() / UINT_BYTE_SIZE);
     for (int i = 0; i < messageBytes.size(); i++) {
-        message[i / 4] |= ((uint) messageBytes[i])
-                << (i == 0 ? sizeof(uint) / sizeof(byte) : sizeof(uint) / sizeof(byte) - 4 + i % 4) * 8;
+        message[i / UINT_BYTE_SIZE] |= ((uint) messageBytes[i])
+                << (i % 4) * 8;
     }
     vector<uint> resultUint = hash(message);
     std::stringstream stream;
@@ -34,7 +34,7 @@ vector<byte> Ripemd160::expanseInput(const vector<byte>& input) {
     if (padding < 8) {
         padding += BLOCK_LENGTH;
     }
-    bytes.resize(bytes.size() + padding - 8, static_cast<uint8_t>(0x0));
+    bytes.resize(bytes.size() + padding - 8, uint(0x0));
 
     const uint64_t bit_length = 8 * input.size();
     for (uint32_t i = 0; i < 8; ++i) {
@@ -94,16 +94,16 @@ uint Ripemd160::f(uint j, uint x, uint y, uint z) {
 vector<uint> Ripemd160::hash(vector<uint> input) {
     uint T;
     uint _h0 = h0, _h1 = h1, _h2 = h2, _h3 = h3, _h4 = h4;
-    for (int i = 0; i < input.size(); i += 16) {
+    for (int i = 0; i < input.size(); i += BLOCK_WORDS_LENGTH) {
         uint A = _h0, A_ = _h0;
         uint B = _h1, B_ = _h1;
         uint C = _h2, C_ = _h2;
         uint D = _h3, D_ = _h3;
         uint E = _h4, E_ = _h4;
         for (int j = 0; j < 80; j++) {
-            T = cycleRolLeft(A + f(j / 16 + 1, B, C, D) + input[i * 16 + r[j]] + k[j / 16], s[j]) + E;
+            T = cycleRolLeft(A + f(j / BLOCK_WORDS_LENGTH + 1, B, C, D) + input[i * BLOCK_WORDS_LENGTH + r[j]] + k[j / BLOCK_WORDS_LENGTH], s[j]) + E;
             A = E, E = D, D = cycleRolLeft(C, 10), C = B, B = T;
-            T = cycleRolLeft(A_ + f(5 - j / 16, B_, C_, D_) + input[i * 16 + r_[j]] + k_[j / 16], s_[j]) + E_;
+            T = cycleRolLeft(A_ + f(5 - j / BLOCK_WORDS_LENGTH, B_, C_, D_) + input[i * BLOCK_WORDS_LENGTH + r_[j]] + k_[j / BLOCK_WORDS_LENGTH], s_[j]) + E_;
             A_ = E_, E_ = D_, D_ = cycleRolLeft(C_, 10), C_ = B_, B_ = T;
         }
         T = _h1 + C + D_;
